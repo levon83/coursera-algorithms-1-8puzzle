@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'base'
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://dl.bintray.com/algs4/maven'
+    }
+}
+
+dependencies {
+    compile 'edu.princeton.cs:algs4:1.0.3'
+
+    testCompile 'junit:junit:4.12'
+    testImplementation 'org.hamcrest:hamcrest-library:1.3'
+}
+
+version = '0.1.1'
+
+mainClassName = 'PuzzleChecker'
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Main-Class': project.mainClassName,
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
+        )
+    }
+}
+
+task zip(type: Zip) {
+    archiveName '8puzzle.zip'
+    from 'src/main/java'
+    exclude 'PuzzleChecker.java'
+}
+
+task submission {
+    group 'Coursera'
+    description 'Coursera related tasks'
+
+    dependsOn 'clean'
+    dependsOn 'build'
+    dependsOn 'installDist'
+    dependsOn 'zip'
+
+    tasks.findByName('build').mustRunAfter 'clean'
+    tasks.findByName('installDist').mustRunAfter 'build'
+    tasks.findByName('zip').mustRunAfter 'installDist'
+
+    doLast {
+        println 'Ready for submission!'
+    }
+}
