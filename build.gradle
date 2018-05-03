@@ -21,7 +21,7 @@ dependencies {
 
 version = '0.1.1'
 
-mainClassName = 'PuzzleChecker'
+mainClassName = 'Solver'
 
 jar {
     manifest {
