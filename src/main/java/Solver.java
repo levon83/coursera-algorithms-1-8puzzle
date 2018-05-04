@@ -1,19 +1,12 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.StdOut;
 
 import java.util.Comparator;
 import java.util.Objects;
 
 public class Solver {
-
-    /**
-     * Priority queue for the puzzle.
-     */
-    private final MinPQ<Node> mainPQ;
-
-    /**
-     * Priority queue for twin puzzle.
-     */
-    private final MinPQ<Node> twinPQ;
 
     /**
      * Is this puzzle solvable?
@@ -40,11 +33,9 @@ public class Solver {
             throw new IllegalArgumentException("Initial board cannot be null.");
         }
 
-        this.mainPQ = new MinPQ<>();
-        this.twinPQ = new MinPQ<>();
         this.isSolvable = false;
-        this.moves = 0;
-        this.solution = new Stack<>();
+        this.moves = -1;
+        this.solution = null;
 
         solve(initial);
     }
@@ -110,34 +101,38 @@ public class Solver {
      * @param initial the initial board
      */
     private void solve(Board initial) {
-        this.mainPQ.insert(new Node(initial, this.moves, null));
-        this.twinPQ.insert(new Node(initial.twin(), this.moves, null));
+        MinPQ<Node> mainPQ = new MinPQ<>();
+        MinPQ<Node> twinPQ = new MinPQ<>();
 
-        Node nextMain = this.mainPQ.delMin();
-        Node nextTwin = this.twinPQ.delMin();
+        mainPQ.insert(new Node(initial, 0, null));
+        twinPQ.insert(new Node(initial.twin(), 0, null));
+
+        Node nextMain = mainPQ.delMin();
+        Node nextTwin = twinPQ.delMin();
+
         while (!nextMain.board.isGoal() && !nextTwin.board.isGoal()) {
-            this.moves++;
-
             for (Board board : nextMain.board.neighbors()) {
                 if (nextMain.parent != null && board.equals(nextMain.parent.board)) {
                     continue;
                 }
-                this.mainPQ.insert(new Node(board, this.moves, nextMain));
+                mainPQ.insert(new Node(board, nextMain.moves + 1, nextMain));
             }
             for (Board board : nextTwin.board.neighbors()) {
                 if (nextTwin.parent != null && board.equals(nextTwin.parent.board)) {
                     continue;
                 }
-                this.twinPQ.insert(new Node(board, this.moves, nextTwin));
+                twinPQ.insert(new Node(board, nextTwin.moves + 1, nextTwin));
             }
 
-            nextMain = this.mainPQ.delMin();
-            nextTwin = this.twinPQ.delMin();
+            nextMain = mainPQ.delMin();
+            nextTwin = twinPQ.delMin();
         }
 
         if (nextMain.board.isGoal()) {
             this.isSolvable = true;
+            this.moves = nextMain.moves;
 
+            this.solution = new Stack<>();
             this.solution.push(nextMain.board);
 
             while (nextMain.parent != null) {
@@ -156,12 +151,24 @@ public class Solver {
         /**
          * Comparator to be used by {@link #compareTo(Node)} method.
          */
-        private static final Comparator<Node> NODE_COMPARATOR = Comparator.comparingInt(n -> n.priority);
+        private static final Comparator<Node> NODE_COMPARATOR = Comparator
+                .comparingInt((Node n) -> n.priority)
+                .thenComparingInt((Node n) -> n.board.manhattan())
+                .thenComparingInt((Node n) -> n.board.hamming());
 
+        /**
+         * The board in the node.
+         */
         private final Board board;
 
+        /**
+         * Moves made to reach this state.
+         */
         private final int moves;
 
+        /**
+         * Parent node of this node.
+         */
         private final Node parent;
 
         /**

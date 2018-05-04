@@ -21,22 +21,17 @@ public class Board {
     /**
      * Hamming value.
      */
-    private final int hamming;
+    private int hamming;
 
     /**
      * Manhattan value.
      */
-    private final int manhattan;
+    private int manhattan;
 
     /**
      * Twin board.
      */
     private Board twin;
-
-    /**
-     * All the neighbors of the board.
-     */
-    private Iterable<Board> neighbors;
 
     /**
      * Construct a board from an n-by-n array of blocks (where blocks[i][j] = block in row i, column j).
@@ -50,10 +45,9 @@ public class Board {
 
         this.n = blocks.length;
         this.tiles = copy(blocks);
-        this.hamming = calculateHamming();
-        this.manhattan = calculateManhattan();
+        this.hamming = -1;
+        this.manhattan = -1;
         this.twin = null;
-        this.neighbors = null;
     }
 
     /**
@@ -71,6 +65,10 @@ public class Board {
      * @return the Humming priority value
      */
     public int hamming() {
+        if (this.hamming == -1) {
+            this.hamming = calculateHamming();
+        }
+
         return this.hamming;
     }
 
@@ -80,6 +78,10 @@ public class Board {
      * @return the Manhattan priority value
      */
     public int manhattan() {
+        if (this.manhattan == -1) {
+            this.manhattan = calculateManhattan();
+        }
+
         return this.manhattan;
     }
 
@@ -134,11 +136,7 @@ public class Board {
      * @return the boards
      */
     public Iterable<Board> neighbors() {
-        if (this.neighbors == null) {
-            this.neighbors = findNeighbors();
-        }
-
-        return this.neighbors;
+        return findNeighbors();
     }
 
     /**
